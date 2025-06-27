@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>PiTalk</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      background: #fff;
+      list-style: none;
+      margin: 0;
+    }
+    .message {
+      margin: 0.5rem 0;
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .mine {
+      background: #e1ffc7;
+      align-self: flex-end;
+      text-align: right;
+      margin-left: auto;
+    }
+    .other {
+      background: #f1f1f1;
+      align-self: flex-start;
+    }
+    #form {
+      display: flex;
+      border-top: 1px solid #ccc;
+      padding: 0.5rem;
+      background: #eee;
+    }
+    #input {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.3rem;
+    }
+    #send {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #4CAF50;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 0.3rem;
+      margin-left: 0.5rem;
+    }
+    #send:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <header>PiTalk</header>
+  <ul id="messages"></ul>
+  <form id="form" action="">
+    <input id="input" autocomplete="off" placeholder="Type a message..." />
+    <button id="send">Send</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
+
+    let username = localStorage.getItem('pitalk-username');
+    if (!username) {
+      username = prompt("Enter your name:");
+      localStorage.setItem('pitalk-username', username);
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value.trim()) {
+        socket.emit('chat message', `${username}: ${input.value.trim()}`);
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', (msg) => {
+      const li = document.createElement('li');
+      li.classList.add('message');
+      const isMine = msg.startsWith(username + ":");
+      li.classList.add(isMine ? 'mine' : 'other');
+      li.textContent = msg;
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+    });
+  </script>
+</body>
+</html>
